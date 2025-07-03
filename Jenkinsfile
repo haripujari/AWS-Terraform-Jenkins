@@ -10,11 +10,6 @@ pipeline {
     }
 
     agent any
-
-    tools {
-        terraform 'terraform-latest'  // Make sure this matches the name you gave in Global Tool Config
-    }
-
     stages {
         stage('Checkout') {
             steps {
