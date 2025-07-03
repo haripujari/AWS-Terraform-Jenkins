@@ -10,21 +10,29 @@ pipeline {
     }
 
     agent any
+
     stages {
         stage('Checkout') {
             steps {
-                dir('terraform') {
-                    git url: 'https://github.com/haripujari/AWS-Terraform-Jenkins.git'
+                dir("terraform") {
+                    git "https://github.com/haripujari/AWS-Terraform-Jenkins.git"
                 }
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                dir('terraform') {
-                    sh 'terraform init'
-                    sh 'terraform plan -out=tfplan'
-                    sh 'terraform show -no-color tfplan > tfplan.txt'
+                dir("terraform") {
+                    sh '''
+                        echo "Initializing Terraform..."
+                        terraform init
+
+                        echo "Generating Terraform plan..."
+                        terraform plan -out=tfplan
+
+                        echo "Showing Terraform plan..."
+                        terraform show -no-color tfplan > tfplan.txt
+                    '''
                 }
             }
         }
@@ -38,16 +46,19 @@ pipeline {
             steps {
                 script {
                     def plan = readFile 'terraform/tfplan.txt'
-                    input message: "Do you want to apply the plan?",
-                        parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+                    input message: "Do you want to apply the Terraform plan?",
+                    parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
                 }
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                dir('terraform') {
-                    sh 'terraform apply -input=false tfplan'
+                dir("terraform") {
+                    sh '''
+                        echo "Applying Terraform plan..."
+                        terraform apply -input=false tfplan
+                    '''
                 }
             }
         }
